@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ElmahCore.Mvc;
+using ElmahCore.Sql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +31,13 @@ namespace AspNetCore.WebApi
         {
 
             services.AddControllers();
+
+            services.AddElmah<SqlErrorLog>(options =>
+            {
+                options.ConnectionString = Configuration.GetSection($"ConnectionStrings:ElmahConnection").Value;
+                options.Path = "/elmah";
+            });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AspNetCore.WebApi", Version = "v1" });
@@ -49,6 +59,20 @@ namespace AspNetCore.WebApi
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/elmah", StringComparison.OrdinalIgnoreCase), appBuilder =>
+            {
+                appBuilder.Use(next =>
+                {
+                    return async ctx =>
+                    {
+                        ctx.Features.Get<IHttpBodyControlFeature>().AllowSynchronousIO = true;
+                        await next(ctx);
+                    };
+                });
+            });
+
+            app.UseElmah();
 
             app.UseEndpoints(endpoints =>
             {
