@@ -1,3 +1,4 @@
+using AspNetCore.WebApi.Controllers.Shared;
 using AspNetCore.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace AspNetCore.WebApi.Controllers
 {
     [ApiController]
     [Route("api/")]
-    public class LivroController : ControllerBase
+    public class LivroController : ApiController
     {
         [HttpGet("livro-nao-tipado")]
         public IActionResult ObterTodosNaoTipado()
@@ -24,14 +25,12 @@ namespace AspNetCore.WebApi.Controllers
         /// Obtém todos os livros
         /// </sumary>
         /// <returns> Retorna os livros encontrados </returns>
-        /// <response code="200">Retorna os livros tipados</response>
-        [ProducesResponseTypeAttribute(StatusCodes.Status200k)];
-        [ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest)]
+        /// <response code="200">Retorna os livros tipados</response>        
         [HttpGet("livro-nao-tipado")]
-        public IActionResult ObterTodosNaoTipado()
+        public IActionResult ObterTodos()
         {
             var livros = Livro.ObterLivros();
-            return Ok(livros);
+            return ResponseOk(livros);
         }
 
     }
